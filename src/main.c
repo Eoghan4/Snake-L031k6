@@ -136,6 +136,8 @@ int main()
 				score +=1;
 				printTextX2("Score", 10, 20, RGBToWord(0xff,0xff,0), 0);
 				printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
+				// Better Sollution Needed! VVV
+				fillRectangle(20,80,12,16,0);
 			}
 		}		
 		delay(50);
