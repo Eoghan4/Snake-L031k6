@@ -46,8 +46,8 @@ int main()
 	int hmoved = 0;
 	int vmoved = 0;
 	int direction = 0;
-	uint16_t apple_x = rand()%110+12;
-	uint16_t apple_y = rand()%140+16;
+	uint16_t apple_x = rand()%122;
+	uint16_t apple_y = rand()%156;
 	uint16_t x = 55;
 	uint16_t y = 70;
 	uint16_t oldx = x;
@@ -57,10 +57,8 @@ int main()
 	setupIO();
 	//apple_x = rand()%110+12;
 	//apple_y = rand()%140+16;
-	putImage(apple_x,apple_y,12,16,apple1,0,0);
 	putImage(x,y,12,16,snake1,0,0);
 	printText("Press to Start", 10, 20, RGBToWord(0xff,0xff,0), 0);
-
 	while(1)
 	{
 		hmoved = vmoved = 0;
@@ -121,6 +119,7 @@ int main()
 		if ((vmoved) || (hmoved))
 		{
 			// only redraw if there has been some movement (reduces flicker)
+			putImage(apple_x,apple_y,12,16,apple1,0,0);
 			fillRectangle(oldx,oldy,12,16,0);
 			oldx = x;
 			oldy = y;					
@@ -145,8 +144,8 @@ int main()
 				printTextX2("Score", 10, 20, RGBToWord(0xff,0xff,0), 0);
 				printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
 				fillRectangle(apple_x,apple_y,12,16,0);
-				apple_x = rand()%110+12;
-				apple_y = rand()%140+24;
+				apple_x = (rand()%106)+10;
+				apple_y = (rand()%103)+41;
 				putImage(apple_x,apple_y,12,16,apple1,0,0);
 			}
 		}		
