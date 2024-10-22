@@ -1,3 +1,9 @@
+/*
+Eoghan and Konrad
+
+22/10/24 - Added score, snake-like movement, sprites
+*/
+
 #include <stm32f031x6.h>
 #include "display.h"
 void initClock(void);
