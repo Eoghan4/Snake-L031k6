@@ -2,6 +2,16 @@
 Eoghan and Konrad
 
 22/10/24 - Added score, snake-like movement, sprites
+
+23/10/24 - Added random movement for the apple, fixed apple sprite
+
+TDODO: 
+	1.
+	Make snake a square rather then rectangke, will make 
+	extending the snake easier.
+
+	2.
+	Make the snake able to grow. (array of coordinates?)
 */
 
 #include <stm32f031x6.h>
