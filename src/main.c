@@ -144,7 +144,7 @@ int main()
 				printTextX2("Score:", 1, 20, RGBToWord(0xff,0xff,0), 0);
 				printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
 				fillRectangle(apple_x,apple_y,12,16,0);
-				apple_x = (rand()%116)+10;
+				apple_x = (rand()%106)+10;
 				apple_y = (rand()%103)+41;
 				putImage(apple_x,apple_y,12,16,apple1,0,0);
 			}
