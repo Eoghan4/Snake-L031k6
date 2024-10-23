@@ -29,6 +29,7 @@ void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 
 volatile uint32_t milliseconds;
 
+// Sprites
 const uint16_t snake1[]=
 {
 65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,
@@ -48,25 +49,23 @@ const uint16_t apple1[]=
 
 int main()
 {
-	srand(time(NULL));
-	int score = 0;
+	srand(time(NULL)); // Initialize "Random" numbers
+	int score = 0; 
 	int hinverted = 0;
 	int vinverted = 0;
 	int toggle = 0;
 	int hmoved = 0;
 	int vmoved = 0;
 	int direction = 0;
-	uint16_t apple_x = rand()%122;
-	uint16_t apple_y = rand()%156;
-	uint16_t x = 55;
+	uint16_t apple_x = (rand()%106)+10; // Screen width (128) - 10 (right border) - 12 (snake width) + 10 (left border)
+	uint16_t apple_y = (rand()%103)+41; // Screen height (160) - 41 (bottom border) - 16 (sbake height) + 41 (top border)
+	uint16_t x = 55; // Roughly Middle of screen
 	uint16_t y = 70;
 	uint16_t oldx = x;
 	uint16_t oldy = y;
 	initClock();
 	initSysTick();
 	setupIO();
-	//apple_x = rand()%110+12;
-	//apple_y = rand()%140+16;
 	putImage(x,y,12,16,snake1,0,0);
 	printText("Press to Start", 10, 20, RGBToWord(0xff,0xff,0), 0);
 	while(1)
@@ -126,6 +125,8 @@ int main()
 		{			
 			direction = 4;
 		}
+
+		// Update when snake moves:
 		if ((vmoved) || (hmoved))
 		{
 			// only redraw if there has been some movement (reduces flicker)
@@ -150,10 +151,10 @@ int main()
 			if (isInside(apple_x,apple_y,12,16,x,y) || isInside(apple_x,apple_y,12,16,x+12,y) || isInside(apple_x,apple_y,12,16,x,y+16) || isInside(apple_x,apple_y,12,16,x+12,y+16) )
 			{
 				score +=1;
-				fillRectangle(10,20,100,20,0);
+				fillRectangle(10,20,100,20,0); // Used to stop score text overlapping
 				printTextX2("Score:", 1, 20, RGBToWord(0xff,0xff,0), 0);
 				printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
-				fillRectangle(apple_x,apple_y,12,16,0);
+				fillRectangle(apple_x,apple_y,12,16,0); // Erase apple
 				apple_x = (rand()%106)+10;
 				apple_y = (rand()%103)+41;
 				putImage(apple_x,apple_y,12,16,apple1,0,0);
