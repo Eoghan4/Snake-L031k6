@@ -136,13 +136,11 @@ int main()
 			drawLine(120,39,120,150,RGBToWord(200,20,200));
 			drawLine(9,39,120,39,RGBToWord(200,20,200));
 			drawLine(9,150,120,150,RGBToWord(200,20,200));
-			//fillRectangle(oldx,oldy,APPLE_WIDTH,APPLE_HEIGHT,0);
-				
-			if (hmoved)
-			{
-				delay(100);
-				snakeUpdate(score, x, y, snakeArray);
-			}
+			//fillRectangle(oldx,oldy,APPLE_WIDTH,APPLE_HEIGHT,0);	
+			
+			delay(100);
+			snakeUpdate(score, x, y, snakeArray);
+			
 
 			// Now check for an overlap by checking to see if ANY of the 4 corners of snake are within the target area
 			if (isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y+SNAKE_SIZE) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y+SNAKE_SIZE) )
