@@ -7,7 +7,7 @@ Eoghan and Konrad
 
 4/11/24 - Snake Grows, Snake is now a rectangle(of SNAKE_SIZE), tidyied up
 		- Added Visual Boarders
-		
+
 TODO:
  - Add Sound
  - Add Game Over when hits wall or tail
