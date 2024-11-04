@@ -18,6 +18,11 @@ TDODO:
 #include <stdlib.h>
 #include <time.h>
 #include "display.h"
+
+struct snake{
+    int x, y;
+};
+
 void initClock(void);
 void initSysTick(void);
 void SysTick_Handler(void);
@@ -26,6 +31,7 @@ void setupIO();
 int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint16_t py);
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
+void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]);
 
 volatile uint32_t milliseconds;
 
@@ -254,4 +260,14 @@ void setupIO()
 	enablePullUp(GPIOB,5);
 	enablePullUp(GPIOA,11);
 	enablePullUp(GPIOA,8);
+}
+
+void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]){
+    snakeArray[0].x = newX;
+    snakeArray[0].y = newY;
+    for(int i=count;i>0;i--){
+        snakeArray[i].x = snakeArray[i-1].x;
+        snakeArray[i].y = snakeArray[i-1].y;
+        // PutImage();
+    }
 }
