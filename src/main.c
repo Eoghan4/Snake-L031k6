@@ -6,11 +6,11 @@ Eoghan and Konrad
 23/10/24 - Added random movement for the apple, fixed apple sprite
 
 4/11/24 - Snake Grows, Snake is now a rectangle(of SNAKE_SIZE), tidyied up
-
+		- Added Visual Boarders
+		
 TODO:
  - Add Sound
  - Add Game Over when hits wall or tail
- - Add Visual borders
 */
 
 #include <stm32f031x6.h>
@@ -61,6 +61,10 @@ int main()
 	setupIO();
 	//putImage(x,y,APPLE_WIDTH,APPLE_HEIGHT,snake1,0,0);
 	printText("Press to Start", 10, 20, RGBToWord(0xff,0xff,0), 0);
+	drawLine(9,39,9,150,RGBToWord(200,20,200));
+	drawLine(120,39,120,150,RGBToWord(200,20,200));
+	drawLine(9,39,120,39,RGBToWord(200,20,200));
+	drawLine(9,150,120,150,RGBToWord(200,20,200));
 	while(1)
 	{
 		hmoved = vmoved = 0;
@@ -128,6 +132,10 @@ int main()
 		{
 			// only redraw if there has been some movement (reduces flicker)
 			putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
+			drawLine(9,39,9,150,RGBToWord(200,20,200));
+			drawLine(120,39,120,150,RGBToWord(200,20,200));
+			drawLine(9,39,120,39,RGBToWord(200,20,200));
+			drawLine(9,150,120,150,RGBToWord(200,20,200));
 			//fillRectangle(oldx,oldy,APPLE_WIDTH,APPLE_HEIGHT,0);
 				
 			if (hmoved)
