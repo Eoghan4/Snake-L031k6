@@ -5,19 +5,22 @@ Eoghan and Konrad
 
 23/10/24 - Added random movement for the apple, fixed apple sprite
 
-TDODO: 
-	1.
-	Make snake a square rather then rectangke, will make 
-	extending the snake easier.
+4/11/24 - Snake Grows, Snake is now a rectangle(of SNAKE_SIZE), tidyied up
 
-	2.
-	Make the snake able to grow. (array of coordinates?)
+TODO:
+ - Add Sound
+ - Add Game Over when hits wall or tail
+ - Add Visual borders
 */
 
 #include <stm32f031x6.h>
 #include <stdlib.h>
 #include <time.h>
 #include "display.h"
+#define SNAKE_SIZE 10
+#define SNAKE_MOVE 5
+#define APPLE_WIDTH 12
+#define APPLE_HEIGHT 16
 
 struct snake{
     int x, y;
@@ -36,18 +39,6 @@ void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]);
 volatile uint32_t milliseconds;
 
 // Sprites
-const uint16_t snake1[]=
-{
-65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,
-};
-const uint16_t snake2[]= 
-	{
-65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,
-	};
-const uint16_t snake3[]= 
-{
-65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,65535,
-};
 const uint16_t apple1[]=
 {
 	0,0,0,0,0,24576,24577,16385,57344,0,0,0,0,0,0,0,0,8193,40971,40971,8193,0,0,0,0,0,0,0,8192,40971,57355,8203,40961,0,0,0,0,0,256,26624,43264,16395,24587,522,19968,26624,0,0,0,256,62208,32256,65024,46081,19969,31488,40704,32512,36096,0,0,26880,32256,40704,40704,40704,40704,40704,40704,40704,62208,0,0,35840,32512,40704,32512,40704,40704,40704,40704,40704,5632,0,0,44800,32512,40704,40704,40704,32512,40704,40704,40704,32512,26624,0,5632,40704,32512,40704,40704,32512,32512,40704,40704,40704,62208,8960,23552,40704,32512,40704,40704,40704,32512,32512,40704,32512,5632,9216,32000,40704,40704,40704,40704,40704,40704,40704,32512,32512,53760,256,62208,32512,40704,40704,32512,32512,40704,40704,40704,32256,26880,0,17664,32000,40704,32512,53760,43776,23552,32512,32512,62464,256,0,0,35584,61952,26624,0,8192,17664,53248,44288,512,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -56,10 +47,8 @@ const uint16_t apple1[]=
 int main()
 {
 	srand(time(NULL)); // Initialize "Random" numbers
-	int score = 0; 
-	int hinverted = 0;
-	int vinverted = 0;
-	int toggle = 0;
+	struct snake snakeArray[100];
+	int score = 1;
 	int hmoved = 0;
 	int vmoved = 0;
 	int direction = 0;
@@ -67,103 +56,97 @@ int main()
 	uint16_t apple_y = (rand()%103)+41; // Screen height (160) - 41 (bottom border) - 16 (sbake height) + 41 (top border)
 	uint16_t x = 55; // Roughly Middle of screen
 	uint16_t y = 70;
-	uint16_t oldx = x;
-	uint16_t oldy = y;
 	initClock();
 	initSysTick();
 	setupIO();
-	putImage(x,y,12,16,snake1,0,0);
+	//putImage(x,y,APPLE_WIDTH,APPLE_HEIGHT,snake1,0,0);
 	printText("Press to Start", 10, 20, RGBToWord(0xff,0xff,0), 0);
 	while(1)
 	{
 		hmoved = vmoved = 0;
-		hinverted = vinverted = 0;
+
 		// move right
 		if(direction == 1){
 			if (x < 110){
-				x = x + 1;
+				x = x + SNAKE_MOVE;
 				hmoved = 1;
-				hinverted=0;
 			}	
 		}
 
 		// move left
 		if(direction == 2){
 			if (x > 10){
-				x = x - 1;
+				x = x - SNAKE_MOVE;
 				hmoved = 1;
-				hinverted=1;
 			}	
 		}
 
 		// move down
 		if(direction == 3){
 			if (y < 140){
-				y = y + 1;
+				y = y + SNAKE_MOVE;
 				hmoved = 1;
-				hinverted=0;
 			}	
 		}
 
 		// move up
 		if(direction == 4){
 			if (y > 40){
-				y = y - 1;
+				y = y - SNAKE_MOVE;
 				hmoved = 1;
-				hinverted=1;
 			}	
 		}
 
 		// Buttons
 		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
 		{					
-			direction = 1;				
+			if (direction!=2){
+				direction = 1;
+			}				
 		}
 		if ((GPIOB->IDR & (1 << 5))==0) // left pressed
 		{			
-			direction = 2;
+			if (direction!=1){
+				direction = 2;
+			}	
 		}
 		if ( (GPIOA->IDR & (1 << 11)) == 0) // down pressed
 		{
-			direction = 3;
+			if (direction!=4){
+				direction = 3;
+			}	
 		}
 		if ( (GPIOA->IDR & (1 << 8)) == 0) // up pressed
 		{			
-			direction = 4;
+			if (direction!=3){
+				direction = 4;
+			}	
 		}
 
 		// Update when snake moves:
 		if ((vmoved) || (hmoved))
 		{
 			// only redraw if there has been some movement (reduces flicker)
-			putImage(apple_x,apple_y,12,16,apple1,0,0);
-			fillRectangle(oldx,oldy,12,16,0);
-			oldx = x;
-			oldy = y;					
+			putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
+			//fillRectangle(oldx,oldy,APPLE_WIDTH,APPLE_HEIGHT,0);
+				
 			if (hmoved)
 			{
-				if (toggle)
-					putImage(x,y,12,16,snake1,hinverted,0);
-				else
-					putImage(x,y,12,16,snake2,hinverted,0);
-				
-				toggle = toggle ^ 1;
+				delay(100);
+				snakeUpdate(score, x, y, snakeArray);
 			}
-			else
-			{
-				putImage(x,y,12,16,snake3,0,vinverted);
-			}
+
 			// Now check for an overlap by checking to see if ANY of the 4 corners of snake are within the target area
-			if (isInside(apple_x,apple_y,12,16,x,y) || isInside(apple_x,apple_y,12,16,x+12,y) || isInside(apple_x,apple_y,12,16,x,y+16) || isInside(apple_x,apple_y,12,16,x+12,y+16) )
+			if (isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y+SNAKE_SIZE) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y+SNAKE_SIZE) )
 			{
 				score +=1;
 				fillRectangle(10,20,100,20,0); // Used to stop score text overlapping
 				printTextX2("Score:", 1, 20, RGBToWord(0xff,0xff,0), 0);
 				printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
-				fillRectangle(apple_x,apple_y,12,16,0); // Erase apple
+				fillRectangle(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,0); // Erase apple
 				apple_x = (rand()%106)+10;
 				apple_y = (rand()%103)+41;
-				putImage(apple_x,apple_y,12,16,apple1,0,0);
+				putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
 			}
 		}		
 		delay(50);
@@ -262,12 +245,14 @@ void setupIO()
 	enablePullUp(GPIOA,8);
 }
 
+// SNAKE LOGIC - Draws snake
 void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]){
     snakeArray[0].x = newX;
     snakeArray[0].y = newY;
+	fillRectangle(snakeArray[count].x, snakeArray[count].y, 12, 16, 0);
     for(int i=count;i>0;i--){
         snakeArray[i].x = snakeArray[i-1].x;
         snakeArray[i].y = snakeArray[i-1].y;
-        // PutImage();
+        fillRectangle(snakeArray[i].x,snakeArray[i].y,SNAKE_SIZE,SNAKE_SIZE,65535);
     }
 }
