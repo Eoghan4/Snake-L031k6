@@ -11,6 +11,10 @@ Eoghan and Konrad
 TODO:
  - Add Sound
  - Add Game Over when hits wall or tail
+ - Multiplayer (Player 1, player 2, compare scores)
+ - Homescreen
+ - Restarting
+ - Serial Port
 */
 
 #include <stm32f031x6.h>
@@ -22,7 +26,7 @@ TODO:
 #define APPLE_WIDTH 12
 #define APPLE_HEIGHT 16
 
-struct snake{
+struct snake{ // Struct for pixels in the snake, simply contains coordinates for each pixel
     int x, y;
 };
 
@@ -76,26 +80,34 @@ int main()
 	srand(time(NULL)); // Initialize "Random" numbers
 	struct snake snakeArray[100];
 	int score = 1;
-	int hmoved = 0;
-	int vmoved = 0;
+	int hmoved = 0; // Has the snake moved horizontally
+	int vmoved = 0; // Has the snake moved vertically
 	int direction = 0;
-	uint16_t apple_x = (rand()%106)+10; // Screen width (128) - 10 (right border) - 12 (snake width) + 10 (left border)
-	uint16_t apple_y = (rand()%103)+41; // Screen height (160) - 41 (bottom border) - 16 (sbake height) + 41 (top border)
-	uint16_t x = 55; // Roughly Middle of screen
-	uint16_t y = 70;
+	uint16_t apple_x = (rand()%106)+10; // Screen width (128) - 10 (right border) - 12 (apple width) + 10 (left border)
+	uint16_t apple_y = (rand()%103)+41; // Screen height (160) - 41 (bottom border) - 16 (apple height) + 41 (top border)
+	uint16_t x = 55;
+	uint16_t y = 70; 
 	initClock();
 	initSysTick();
 	setupIO();
-	//putImage(x,y,APPLE_WIDTH,APPLE_HEIGHT,snake1,0,0);
 	
-	while(direction==0){ // Home screen, runs when game has'nt started.
-		printText("Press to Start", 10, 20, RGBToWord(0xff,0xff,0), 0);
+	while(direction==0){ // Home screen, runs when game hasn't started.
+		putImage(34,20,12,16,s,0,0);
+		putImage(46,20,12,16,n,0,0);
+		putImage(58,20,12,16,a,0,0);
+		putImage(70,20,12,16,k,0,0);
+		putImage(82,20,12,16,e,0,0);
+		printText("Press to Start", 10, 50, RGBToWord(0xff,0xff,0), 0);
 	}
+
+	fillRectangle(0,0,160,128,0); // Erase Screen
 	
+	// Draw Borders
 	drawLine(9,39,9,150,RGBToWord(200,20,200));
 	drawLine(120,39,120,150,RGBToWord(200,20,200));
 	drawLine(9,39,120,39,RGBToWord(200,20,200));
 	drawLine(9,150,120,150,RGBToWord(200,20,200));
+
 	while(1)
 	{
 		hmoved = vmoved = 0;
@@ -163,17 +175,16 @@ int main()
 		{
 			// only redraw if there has been some movement (reduces flicker)
 			putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
+			// Borders
 			drawLine(9,39,9,150,RGBToWord(200,20,200));
 			drawLine(120,39,120,150,RGBToWord(200,20,200));
 			drawLine(9,39,120,39,RGBToWord(200,20,200));
-			drawLine(9,150,120,150,RGBToWord(200,20,200));
-			//fillRectangle(oldx,oldy,APPLE_WIDTH,APPLE_HEIGHT,0);	
-			
+			drawLine(9,150,120,150,RGBToWord(200,20,200));	
 			delay(100);
-			snakeUpdate(score, x, y, snakeArray);
-			
 
-			// Now check for an overlap by checking to see if ANY of the 4 corners of snake are within the target area
+			snakeUpdate(score, x, y, snakeArray);
+
+			// Now check for an overlap by checking to see if ANY of the 4 corners of snake are within the apple
 			if (isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y+SNAKE_SIZE) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y+SNAKE_SIZE) )
 			{
 				score +=1;
