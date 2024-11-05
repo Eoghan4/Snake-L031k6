@@ -87,7 +87,11 @@ int main()
 	initSysTick();
 	setupIO();
 	//putImage(x,y,APPLE_WIDTH,APPLE_HEIGHT,snake1,0,0);
-	printText("Press to Start", 10, 20, RGBToWord(0xff,0xff,0), 0);
+	
+	while(direction==0){ // Home screen, runs when game has'nt started.
+		printText("Press to Start", 10, 20, RGBToWord(0xff,0xff,0), 0);
+	}
+	
 	drawLine(9,39,9,150,RGBToWord(200,20,200));
 	drawLine(120,39,120,150,RGBToWord(200,20,200));
 	drawLine(9,39,120,39,RGBToWord(200,20,200));
