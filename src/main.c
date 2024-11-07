@@ -97,7 +97,7 @@ int main()
 		putImage(58,20,12,16,a,0,0);
 		putImage(70,20,12,16,k,0,0);
 		putImage(82,20,12,16,e,0,0);
-		printText("Press to Right Start", 5, 50, RGBToWord(0xff,0xff,0), 0);
+		printText("Press (>) to Start", 3, 50, RGBToWord(0xff,0xff,0), 0);
 		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
 		{					
 				direction = 9;
@@ -308,4 +308,28 @@ void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]){
         snakeArray[i].y = snakeArray[i-1].y;
         fillRectangle(snakeArray[i].x,snakeArray[i].y,SNAKE_SIZE,SNAKE_SIZE,65535);
     }
+}
+
+void checkIfHit(struct snake snakeArray[100], int score){
+    // Check if snake has hit the wall
+    if (snakeArray[0].x < 10  snakeArray[0].x > 110  snakeArray[0].y < 40 || snakeArray[0].y > 140){
+        snakeDie();
+    }
+    // Check if snake has hit itself
+    for (int i = 1; i < score; i++){
+        if (snakeArray[0].x == snakeArray[i].x && snakeArray[0].y == snakeArray[i].y){
+            snakeDie();
+        }
+    }
+
+
+void snakeDie(){
+    text("Game Over", 10, 10, 0, 0, 0);
+    text("Press to anything to Start", 10, 20, 0, 0, 0);
+    if (buttonPressed())
+    {
+        game();
+    }
+
+
 }
