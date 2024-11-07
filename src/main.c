@@ -39,6 +39,8 @@ int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]);
+void snakeDie();
+void checkIfHit(struct snake snakeArray[100], int score);
 
 volatile uint32_t milliseconds;
 
@@ -188,6 +190,7 @@ int main()
 			delay(100);
 
 			snakeUpdate(score, x, y, snakeArray);
+			checkIfHit(snakeArray, score);
 
 			// Now check for an overlap by checking to see if ANY of the 4 corners of snake are within the apple
 			if (isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y+SNAKE_SIZE) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y+SNAKE_SIZE) )
@@ -312,7 +315,7 @@ void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]){
 
 void checkIfHit(struct snake snakeArray[100], int score){
     // Check if snake has hit the wall
-    if (snakeArray[0].x < 10  snakeArray[0].x > 110  snakeArray[0].y < 40 || snakeArray[0].y > 140){
+    if (snakeArray[0].x < 10 ||  snakeArray[0].x > 110  || snakeArray[0].y < 40 || snakeArray[0].y > 140){
         snakeDie();
     }
     // Check if snake has hit itself
@@ -321,14 +324,14 @@ void checkIfHit(struct snake snakeArray[100], int score){
             snakeDie();
         }
     }
-
+}
 
 void snakeDie(){
-    text("Game Over", 10, 10, 0, 0, 0);
-    text("Press to anything to Start", 10, 20, 0, 0, 0);
-    if (buttonPressed())
+    printText("Game Over", 10, 10, RGBToWord(0xff,0xff,0), 0);
+    printText("Press to anything to Start", 10, 20, RGBToWord(0xff,0xff,0), 0);
+    if ((GPIOB->IDR & (1 << 4))==0)
     {
-        game();
+        printText("Poop", 10,20,0,0);
     }
 
 
