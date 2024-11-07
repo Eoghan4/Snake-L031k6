@@ -97,7 +97,12 @@ int main()
 		putImage(58,20,12,16,a,0,0);
 		putImage(70,20,12,16,k,0,0);
 		putImage(82,20,12,16,e,0,0);
-		printText("Press to Start", 10, 50, RGBToWord(0xff,0xff,0), 0);
+		printText("Press to Right Start", 5, 50, RGBToWord(0xff,0xff,0), 0);
+		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
+		{					
+				direction = 9;
+			}				
+		
 	}
 
 	fillRectangle(0,0,160,128,0); // Erase Screen
