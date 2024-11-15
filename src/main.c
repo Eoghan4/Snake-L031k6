@@ -8,9 +8,13 @@ Eoghan and Konrad
 4/11/24 - Snake Grows, Snake is now a rectangle(of SNAKE_SIZE), tidyied up
 		- Added Visual Boarders
 
+07/11/24 - Walls work, just need to break out of the loop when the snake hits
+		   either the wall or itself
+
+11/11/24 - snake dies now when it hits itself
+
 TODO:
  - Add Sound
- - Add Game Over when hits wall or tail
  - Multiplayer (Player 1, player 2, compare scores)
  - Homescreen
  - Restarting
@@ -21,6 +25,7 @@ TODO:
 #include <stdlib.h>
 #include <time.h>
 #include "display.h"
+#include <stdbool.h>
 #define SNAKE_SIZE 10
 #define SNAKE_MOVE 5
 #define APPLE_WIDTH 12
@@ -39,8 +44,11 @@ int isInside(uint16_t x1, uint16_t y1, uint16_t w, uint16_t h, uint16_t px, uint
 void enablePullUp(GPIO_TypeDef *Port, uint32_t BitNumber);
 void pinMode(GPIO_TypeDef *Port, uint32_t BitNumber, uint32_t Mode);
 void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]);
-void snakeDie();
-void checkIfHit(struct snake snakeArray[100], int score);
+int snakeDie();
+int checkIfHit(struct snake snakeArray[100], int score);
+void singleplayer(struct snake snakeArray[100], uint16_t apple_x, uint16_t apple_y);
+void multiplayer(struct snake snakeArray[100], uint16_t apple_x, uint16_t apple_y);
+
 
 volatile uint32_t milliseconds;
 
@@ -76,139 +84,86 @@ const uint16_t e[]=
 	0,0,0,0,8192,57344,32768,32768,32768,24576,40960,0,57344,25090,33795,25860,50693,42501,34565,42757,9990,42757,17411,40960,1285,43271,35079,43271,51463,51463,51463,51463,51463,43271,34823,41217,59655,51463,26887,35079,2055,34823,2055,59399,34823,43014,9476,24576,10503,51463,9733,16897,257,16641,41217,33025,33025,16641,57344,0,34823,51463,9990,16384,0,0,0,0,0,0,0,0,1798,51463,18439,41217,8192,770,33796,513,24576,0,0,0,58628,43271,10503,17668,1798,51463,43271,34052,57344,0,0,0,49922,18695,43271,26887,51463,51463,10247,1027,57344,0,0,0,49665,2055,51463,43271,10247,58885,17154,0,0,0,0,0,49408,26630,51463,10246,49665,40960,0,0,49152,49152,0,0,8192,18182,51463,59398,57600,0,32768,257,17668,25604,32768,0,32768,59141,51463,2055,41217,32768,41987,26631,35079,59399,33281,0,40960,34309,51463,43271,25604,58885,43271,59655,35079,34565,8192,0,0,1284,51463,51463,35079,51463,51463,2055,9476,41216,8192,0,0,8705,18438,10503,35079,51463,50950,770,0,0,0,0,
 };
 
-
-int main()
-{
-	srand(time(NULL)); // Initialize "Random" numbers
 	struct snake snakeArray[100];
 	int score = 1;
+	int score2 = 1;
 	int hmoved = 0; // Has the snake moved horizontally
 	int vmoved = 0; // Has the snake moved vertically
 	int direction = 0;
-	uint16_t apple_x = (rand()%106)+10; // Screen width (128) - 10 (right border) - 12 (apple width) + 10 (left border)
-	uint16_t apple_y = (rand()%103)+41; // Screen height (160) - 41 (bottom border) - 16 (apple height) + 41 (top border)
+
 	uint16_t x = 55;
 	uint16_t y = 70; 
+
+int main(){
+	srand(time(NULL)); // Initialize "Random" numbers
+	uint16_t apple_x = (rand()%106)+10; // Screen width (128) - 10 (right border) - 12 (apple width) + 10 (left border)
+	uint16_t apple_y = (rand()%103)+41; // Screen height (160) - 41 (bottom border) - 16 (apple height) + 41 (top border)
+
 	initClock();
 	initSysTick();
 	setupIO();
-	
+		homescreen:
+		score=1;
+		score2=1;
+
+		direction=0;
+		fillRectangle(0,0,128,160,0);
 	while(direction==0){ // Home screen, runs when game hasn't started.
+
 		putImage(34,20,12,16,s,0,0);
 		putImage(46,20,12,16,n,0,0);
 		putImage(58,20,12,16,a,0,0);
 		putImage(70,20,12,16,k,0,0);
 		putImage(82,20,12,16,e,0,0);
-		printText("Press (>) to Start", 3, 50, RGBToWord(0xff,0xff,0), 0);
+		printText("Singleplayer: (>)", 3, 50, RGBToWord(0xff,0xff,0), 0);
+		printText("Multiplayer: (<)", 3, 60, RGBToWord(0xff,0xff,0), 0);
 		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
-		{					
-				direction = 9;
-			}				
-		
-	}
+		{		
+			singleplayer(snakeArray, apple_x, apple_y);
+			int value = 0;
+			while(value != 1)
+			{
 
-	fillRectangle(0,0,160,128,0); // Erase Screen
-	
-	// Draw Borders
-	drawLine(9,39,9,150,RGBToWord(200,20,200));
-	drawLine(120,39,120,150,RGBToWord(200,20,200));
-	drawLine(9,39,120,39,RGBToWord(200,20,200));
-	drawLine(9,150,120,150,RGBToWord(200,20,200));
+				fillRectangle(0,0,128,160,0); // Erase Screen
+				delay(100);
+    			printTextX2("Game Over", 10, 10, RGBToWord(0xff,0xff,0), 0);
+				delay(1000);
+				goto homescreen;
+				if ((GPIOB->IDR & (1 << 8))==0)
+				{
+					printText("Test",3,10, RGBToWord(0xff,0xff,0), 0);
 
-	while(1)
-	{
-		hmoved = vmoved = 0;
 
-		// move right
-		if(direction == 1){
-			if (x < 110){
-				x = x + SNAKE_MOVE;
-				hmoved = 1;
-			}	
+				}
+				else
+				{
+					break;
+
+				}
+
+			}
+
 		}
 
-		// move left
-		if(direction == 2){
-			if (x > 10){
-				x = x - SNAKE_MOVE;
-				hmoved = 1;
-			}	
-		}
-
-		// move down
-		if(direction == 3){
-			if (y < 140){
-				y = y + SNAKE_MOVE;
-				hmoved = 1;
-			}	
-		}
-
-		// move up
-		if(direction == 4){
-			if (y > 40){
-				y = y - SNAKE_MOVE;
-				hmoved = 1;
-			}	
-		}
-
-		// Buttons
-		if ((GPIOB->IDR & (1 << 4))==0) // right pressed
-		{					
-			if (direction!=2){
-				direction = 1;
-			}				
-		}
+			// Multiplayer
 		if ((GPIOB->IDR & (1 << 5))==0) // left pressed
 		{			
-			if (direction!=1){
-				direction = 2;
-			}	
-		}
-		if ( (GPIOA->IDR & (1 << 11)) == 0) // down pressed
-		{
-			if (direction!=4){
-				direction = 3;
-			}	
-		}
-		if ( (GPIOA->IDR & (1 << 8)) == 0) // up pressed
-		{			
-			if (direction!=3){
-				direction = 4;
-			}	
+
+			multiplayer(snakeArray, apple_x, apple_y);
+			delay(1000);
+			goto homescreen;
+
 		}
 
-		// Update when snake moves:
-		if ((vmoved) || (hmoved))
-		{
-			// only redraw if there has been some movement (reduces flicker)
-			putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
-			// Borders
-			drawLine(9,39,9,150,RGBToWord(200,20,200));
-			drawLine(120,39,120,150,RGBToWord(200,20,200));
-			drawLine(9,39,120,39,RGBToWord(200,20,200));
-			drawLine(9,150,120,150,RGBToWord(200,20,200));	
-			delay(100);
 
-			snakeUpdate(score, x, y, snakeArray);
-			checkIfHit(snakeArray, score);
+	}				
 
-			// Now check for an overlap by checking to see if ANY of the 4 corners of snake are within the apple
-			if (isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y+SNAKE_SIZE) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y+SNAKE_SIZE) )
-			{
-				score +=1;
-				fillRectangle(10,20,100,20,0); // Used to stop score text overlapping
-				printTextX2("Score:", 1, 20, RGBToWord(0xff,0xff,0), 0);
-				printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
-				fillRectangle(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,0); // Erase apple
-				apple_x = (rand()%106)+10;
-				apple_y = (rand()%103)+41;
-				putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
-			}
-		}		
-		delay(50);
-	}
+
+
+
 	return 0;
 }
+
 
 void initSysTick(void)
 {
@@ -229,10 +184,10 @@ void initClock(void)
         // First ensure PLL is disabled
         RCC->CR &= ~(1u<<24);
         while( (RCC->CR & (1 <<25))); // wait for PLL ready to be cleared
-        
+
 // Warning here: if system clock is greater than 24MHz then wait-state(s) need to be
 // inserted into Flash memory interface
-				
+
         FLASH->ACR |= (1 << 0);
         FLASH->ACR &=~((1u << 2) | (1u<<1));
         // Turn on FLASH prefetch buffer
@@ -306,6 +261,7 @@ void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]){
     snakeArray[0].x = newX;
     snakeArray[0].y = newY;
 	fillRectangle(snakeArray[count].x, snakeArray[count].y, 12, 16, 0);
+
     for(int i=count;i>0;i--){
         snakeArray[i].x = snakeArray[i-1].x;
         snakeArray[i].y = snakeArray[i-1].y;
@@ -313,26 +269,449 @@ void snakeUpdate(int count, int newX, int newY, struct snake snakeArray[100]){
     }
 }
 
-void checkIfHit(struct snake snakeArray[100], int score){
+int checkIfHit(struct snake snakeArray[100], int score)
+{
     // Check if snake has hit the wall
-    if (snakeArray[0].x < 10 ||  snakeArray[0].x > 110  || snakeArray[0].y < 40 || snakeArray[0].y > 140){
-        snakeDie();
+    if (snakeArray[0].x >= 110 || snakeArray[0].x <= 10 || snakeArray[0].y >= 140 || snakeArray[0].y <= 40){
+
+
+		return 1;
     }
     // Check if snake has hit itself
     for (int i = 1; i < score; i++){
-        if (snakeArray[0].x == snakeArray[i].x && snakeArray[0].y == snakeArray[i].y){
-            snakeDie();
+        if (snakeArray[0].x == snakeArray[i+1].x && snakeArray[0].y == snakeArray[i+1].y){
+
+			return 1;
         }
     }
+
+	return 0;
 }
 
-void snakeDie(){
-    printText("Game Over", 10, 10, RGBToWord(0xff,0xff,0), 0);
-    printText("Press to anything to Start", 10, 20, RGBToWord(0xff,0xff,0), 0);
-    if ((GPIOB->IDR & (1 << 4))==0)
-    {
-        printText("Poop", 10,20,0,0);
-    }
+int snakeDie(){
 
+	int value = 5;
+
+	fillRectangle(0,0,128,160,0); // Erase Screen
+	delay(100);
+    printTextX2("Game Over", 10, 10, RGBToWord(0xff,0xff,0), 0);
+
+	while (1)
+	{
+		if ((GPIOB->IDR & (1 << 4))==0)
+		{
+			value = 1;
+			break;
+
+		}
+		else
+		{
+			value = 0;
+			break;
+
+		}
+	}
+	return value;
+}
+
+
+
+//
+//
+//
+// SINGLEPLAYER
+void singleplayer(struct snake snakeArray[100], uint16_t apple_x, uint16_t apple_y)
+{
+	while(direction==0){ // Home screen, runs when game hasn't started.
+
+
+		x = 55;
+		y = 70;
+
+
+			direction = 9;
+			fillRectangle(0,0,160,128,0); // Erase Screen
+
+			// Draw Borders
+			drawLine(9,39,9,150,RGBToWord(200,20,200));
+			drawLine(120,39,120,150,RGBToWord(200,20,200));
+			drawLine(9,39,120,39,RGBToWord(200,20,200));
+			drawLine(9,150,120,150,RGBToWord(200,20,200));
+
+			while(1)
+			{
+				hmoved = vmoved = 0;
+
+				// move right
+				if(direction == 1){
+					if (x < 110){
+						x = x + SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// move left
+				if(direction == 2){
+					if (x > 10){
+						x = x - SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// move down
+				if(direction == 3){
+					if (y < 140){
+						y = y + SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// move up
+				if(direction == 4){
+					if (y > 40){
+						y = y - SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// Buttons
+				if ((GPIOB->IDR & (1 << 4))==0) // right pressed
+				{					
+					if (direction!=2){
+						direction = 1;
+					}				
+				}
+				if ((GPIOB->IDR & (1 << 5))==0) // left pressed
+				{			
+					if (direction!=1){
+						direction = 2;
+					}	
+				}
+				if ( (GPIOA->IDR & (1 << 11)) == 0) // down pressed
+				{
+					if (direction!=4){
+						direction = 3;
+					}	
+				}
+				if ( (GPIOA->IDR & (1 << 8)) == 0) // up pressed
+				{			
+					if (direction!=3){
+						direction = 4;
+					}	
+				}
+
+				// Update when snake moves:
+				if ((vmoved) || (hmoved))
+				{
+					// only redraw if there has been some movement (reduces flicker)
+					putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
+					// Borders
+					drawLine(9,39,9,150,RGBToWord(200,20,200));
+					drawLine(120,39,120,150,RGBToWord(200,20,200));
+					drawLine(9,39,120,39,RGBToWord(200,20,200));
+					drawLine(9,150,120,150,RGBToWord(200,20,200));	
+					delay(100);
+
+					snakeUpdate(score, x, y, snakeArray);
+					checkIfHit(snakeArray, score);
+
+					if (checkIfHit(snakeArray, score) == 1)
+					{
+						break;
+					}
+
+
+					// Now check for an overlap by checking to see if ANY of the 4 corners of snake are within the apple
+					if (isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y+SNAKE_SIZE) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y+SNAKE_SIZE) )
+					{
+						score +=1;
+
+						fillRectangle(10,20,100,20,0); // Used to stop score text overlapping
+						printTextX2("Score:", 1, 20, RGBToWord(0xff,0xff,0), 0);
+						printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
+						fillRectangle(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,0); // Erase apple
+						apple_x = (rand()%106)+10;
+						apple_y = (rand()%103)+41;
+						putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
+					}
+				}		
+				delay(50);
+
+
+
+			}
+
+
+
+
+
+
+	}
 
 }
+
+//
+//
+//
+// MULTIPLAYER
+void multiplayer(struct snake snakeArray[100], uint16_t apple_x, uint16_t apple_y)
+{
+	fillRectangle(0,0,128,160,0); // Erase Screen
+	printText("Player 1:", 3, 50, RGBToWord(0xff,0xff,0), 0);
+	delay(1000);
+	fillRectangle(0,0,128,160,0); // Erase Screen
+
+			// Draw Borders
+			drawLine(9,39,9,150,RGBToWord(200,20,200));
+			drawLine(120,39,120,150,RGBToWord(200,20,200));
+			drawLine(9,39,120,39,RGBToWord(200,20,200));
+			drawLine(9,150,120,150,RGBToWord(200,20,200));
+
+			x = 55;
+			y = 70;
+
+			while(1)
+			{
+				hmoved = vmoved = 0;
+
+				// move right
+				if(direction == 1){
+					if (x < 110){
+						x = x + SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// move left
+				if(direction == 2){
+					if (x > 10){
+						x = x - SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// move down
+				if(direction == 3){
+					if (y < 140){
+						y = y + SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// move up
+				if(direction == 4){
+					if (y > 40){
+						y = y - SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// Buttons
+				if ((GPIOB->IDR & (1 << 4))==0) // right pressed
+				{					
+					if (direction!=2){
+						direction = 1;
+					}				
+				}
+				if ((GPIOB->IDR & (1 << 5))==0) // left pressed
+				{			
+					if (direction!=1){
+						direction = 2;
+					}	
+				}
+				if ( (GPIOA->IDR & (1 << 11)) == 0) // down pressed
+				{
+					if (direction!=4){
+						direction = 3;
+					}	
+				}
+				if ( (GPIOA->IDR & (1 << 8)) == 0) // up pressed
+				{			
+					if (direction!=3){
+						direction = 4;
+					}	
+				}
+
+				// Update when snake moves:
+				if ((vmoved) || (hmoved))
+				{
+					// only redraw if there has been some movement (reduces flicker)
+					putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
+					// Borders
+					drawLine(9,39,9,150,RGBToWord(200,20,200));
+					drawLine(120,39,120,150,RGBToWord(200,20,200));
+					drawLine(9,39,120,39,RGBToWord(200,20,200));
+					drawLine(9,150,120,150,RGBToWord(200,20,200));	
+					delay(100);
+
+					snakeUpdate(score, x, y, snakeArray);
+					checkIfHit(snakeArray, score);
+
+					if (checkIfHit(snakeArray, score) == 1)
+					{
+						break;
+					}
+
+
+					// Now check for an overlap by checking to see if ANY of the 4 corners of snake are within the apple
+					if (isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y+SNAKE_SIZE) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y+SNAKE_SIZE) )
+					{
+						score +=1;
+
+						fillRectangle(10,20,100,20,0); // Used to stop score text overlapping
+						printTextX2("Score:", 1, 20, RGBToWord(0xff,0xff,0), 0);
+						printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
+						fillRectangle(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,0); // Erase apple
+						apple_x = (rand()%106)+10;
+						apple_y = (rand()%103)+41;
+						putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
+
+					}
+				}		
+				delay(50);
+			}
+
+			fillRectangle(0,0,128,160,0);
+
+			printText("Player 2:", 3, 50, RGBToWord(0xff,0xff,0), 0);
+			delay(5000);
+
+			fillRectangle(0,0,160,128,0); // Erase Screen
+
+			// Draw Borders
+			drawLine(9,39,9,150,RGBToWord(200,20,200));
+			drawLine(120,39,120,150,RGBToWord(200,20,200));
+			drawLine(9,39,120,39,RGBToWord(200,20,200));
+			drawLine(9,150,120,150,RGBToWord(200,20,200));
+
+			x = 55;
+			y = 70;
+
+
+			while(1)
+			{
+				hmoved = vmoved = 0;
+
+				// move right
+				if(direction == 1){
+					if (x < 110){
+						x = x + SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// move left
+				if(direction == 2){
+					if (x > 10){
+						x = x - SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// move down
+				if(direction == 3){
+					if (y < 140){
+						y = y + SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// move up
+				if(direction == 4){
+					if (y > 40){
+						y = y - SNAKE_MOVE;
+						hmoved = 1;
+					}	
+				}
+
+				// Buttons
+				if ((GPIOB->IDR & (1 << 4))==0) // right pressed
+				{					
+					if (direction!=2){
+						direction = 1;
+					}				
+				}
+				if ((GPIOB->IDR & (1 << 5))==0) // left pressed
+				{			
+					if (direction!=1){
+						direction = 2;
+					}	
+				}
+				if ( (GPIOA->IDR & (1 << 11)) == 0) // down pressed
+				{
+					if (direction!=4){
+						direction = 3;
+					}	
+				}
+				if ( (GPIOA->IDR & (1 << 8)) == 0) // up pressed
+				{			
+					if (direction!=3){
+						direction = 4;
+					}	
+				}
+
+				// Update when snake moves:
+				if ((vmoved) || (hmoved))
+				{
+					// only redraw if there has been some movement (reduces flicker)
+					putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
+					// Borders
+					drawLine(9,39,9,150,RGBToWord(200,20,200));
+					drawLine(120,39,120,150,RGBToWord(200,20,200));
+					drawLine(9,39,120,39,RGBToWord(200,20,200));
+					drawLine(9,150,120,150,RGBToWord(200,20,200));	
+					delay(100);
+
+					snakeUpdate(score2, x, y, snakeArray);
+					checkIfHit(snakeArray, score2);
+
+					if (checkIfHit(snakeArray, score2) == 1)
+					{
+						break;
+					}
+
+
+					// Now check for an overlap by checking to see if ANY of the 4 corners of snake are within the apple
+					if (isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x,y+SNAKE_SIZE) || isInside(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,x+SNAKE_SIZE,y+SNAKE_SIZE) )
+					{
+						score2 +=1;
+
+						fillRectangle(10,20,100,20,0); // Used to stop score text overlapping
+						printTextX2("Score:", 1, 20, RGBToWord(0xff,0xff,0), 0);
+						printNumberX2(score2, 70, 20, RGBToWord(0xff,0xff,0), 0);
+						fillRectangle(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,0); // Erase apple
+						apple_x = (rand()%106)+10;
+						apple_y = (rand()%103)+41;
+						putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
+					}
+				}		
+				delay(50);
+			}
+
+			fillRectangle(0,0,128,160,0);
+			if (score > score2)
+			{
+
+				fillRectangle(0,0,160,128,0); // Erase Screen
+				printText("Player 1 wins", 3, 50, RGBToWord(0xff,0xff,0), 0);
+				delay(1000);
+			}
+			else if (score2 > score)
+			{
+
+				fillRectangle(0,0,160,128,0); // Erase Screen
+				printText("Player 2 wins", 3, 50, RGBToWord(0xff,0xff,0), 0);
+				delay(1000);
+			}
+			else
+			{
+
+				fillRectangle(0,0,160,128,0); // Erase Screen
+				printText("Draw", 3, 50, RGBToWord(0xff,0xff,0), 0);
+				delay(1000);
+			}
+
+
+
+
+}//end 
