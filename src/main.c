@@ -97,7 +97,7 @@ const uint16_t e[]=
 int main(){
 	srand(time(NULL)); // Initialize "Random" numbers
 	uint16_t apple_x = (rand()%106)+10; // Screen width (128) - 10 (right border) - 12 (apple width) + 10 (left border)
-	uint16_t apple_y = (rand()%103)+41; // Screen height (160) - 41 (bottom border) - 16 (apple height) + 41 (top border)
+	uint16_t apple_y = (rand()%93)+41; // Screen height (160) - 41 (bottom border) - 16 (apple height) + 41 (top border)
 
 	initClock();
 	initSysTick();
@@ -274,7 +274,6 @@ int checkIfHit(struct snake snakeArray[100], int score)
     // Check if snake has hit the wall
     if (snakeArray[0].x >= 110 || snakeArray[0].x <= 10 || snakeArray[0].y >= 140 || snakeArray[0].y <= 40){
 
-
 		return 1;
     }
     // Check if snake has hit itself
@@ -431,7 +430,7 @@ void singleplayer(struct snake snakeArray[100], uint16_t apple_x, uint16_t apple
 						printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
 						fillRectangle(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,0); // Erase apple
 						apple_x = (rand()%106)+10;
-						apple_y = (rand()%103)+41;
+						apple_y = (rand()%93)+41;
 						putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
 					}
 				}		
@@ -563,7 +562,7 @@ void multiplayer(struct snake snakeArray[100], uint16_t apple_x, uint16_t apple_
 						printNumberX2(score, 70, 20, RGBToWord(0xff,0xff,0), 0);
 						fillRectangle(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,0); // Erase apple
 						apple_x = (rand()%106)+10;
-						apple_y = (rand()%103)+41;
+						apple_y = (rand()%93)+41;
 						putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
 
 					}
@@ -681,7 +680,7 @@ void multiplayer(struct snake snakeArray[100], uint16_t apple_x, uint16_t apple_
 						printNumberX2(score2, 70, 20, RGBToWord(0xff,0xff,0), 0);
 						fillRectangle(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,0); // Erase apple
 						apple_x = (rand()%106)+10;
-						apple_y = (rand()%103)+41;
+						apple_y = (rand()%93)+41;
 						putImage(apple_x,apple_y,APPLE_WIDTH,APPLE_HEIGHT,apple1,0,0);
 					}
 				}		
